@@ -1,5 +1,9 @@
 #include "griddy.h"
 
+int     is_valid_ip(char *ip)
+{
+}
+
 char    *read_file(int fd)
 {
     char    buffer[BUFFER_SIZE];
