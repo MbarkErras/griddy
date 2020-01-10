@@ -15,32 +15,31 @@
 
 # define PORT 1337
 
-typedef struct   s_cluster
-{
-    char     **nodes;
-    char    *program;
-    size_t  size;
-}               t_cluster;
-
-typedef struct s_connection
-{
-    t_cluster   cluster;
-    int         *sockets;
-    int         *status;
-}               t_connection;
-
-typedef struct  s_node
-{
-    t_stack     *requests;
-}               t_node;
-
 typedef struct  s_request
 {
     int         type;
-    void        *data;
     size_t      size;
+    void        *data;
+    char        *status;
 }               t_request;
 
+typedef struct  s_node
+{
+    int         socket;
+    int         status;
+    t_list     **requests;
+    int         flags;
+}               t_node;
+
+# define DO_PROCEED 0
+
+typedef struct   s_cluster
+{
+    t_node      *nodes;
+    char        *program;
+    size_t      size;
+    t_list      *requests;
+}               t_cluster;
 
 /*
 ** NODES STATUS BITS

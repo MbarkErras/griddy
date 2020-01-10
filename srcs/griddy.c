@@ -1,5 +1,5 @@
 #include "griddy.h"
-
+#include "configuration.h"
 void    send_request(t_stack *request)
 {
     write(connection, &request->type, sizeof(request->type));
@@ -7,18 +7,16 @@ void    send_request(t_stack *request)
     write(connection, request->data, request->size);
 }
 
-int     connect_node(t_node *node)
+int     connect_slave(t_node *node)
 {
-    t_request *temp;
-
+    F_SET(node->status, CONNECTED);
     while (1)
     {
-        if (node->requests)
+        if (node->requests || !F_SET(node->flags, DO_PROCEED))
             continue ;
         else
         {
             send_request(node->requests);
-            t_stack_pop(&node->requests);
         }
     }
 }
@@ -28,32 +26,30 @@ int     connect_node(t_node *node)
 ** and establish connection with nodes each in a diffrent thread.
 */
 
-int connect_to_nodes(t_connection *connection,
+int initiate_connection_to_slaves(t_cluster cluster,
         void (* status_reporter)(int , void *), void *argument)
 {
     int                 socket_fd;
     struct sockaddr_in  server_address;
-    int                 connection_fd;
     pthread_t           tid;
     int                 i;
 
     i = -1;
-    if (socket_fd = socket(AF_INET, SOCK_STREAM, 0) == -1)
-        return (SERVER_ERROR);
-    ft_bzero(&server_address, sizeof(server_address));
-    while (++i < connection->cluster.size)
+    while (++i < cluster->size)
     {
+        if (socket_fd = socket(AF_INET, SOCK_STREAM, 0) == -1)
+            return (SERVER_ERROR);
+        ft_bzero(&server_address, sizeof(server_address));
         server_address.sin_family = AF_INET; 
         server_address.sin_addr.s_addr = htonl(connection->cluster.nodes[i]); 
         server_address.sin_port = htons(PORT);
         if (connect(socket_fd, (struct sockaddr *)&server_address, sizeof(server_address)) != 0)
             continue ;
-        if (pthread_create(&tid, NULL, connect_node, (void *)connection_fd))
+        cluster->nodes[i].socket = socket_fd;
+        if (pthread_create(&tid, NULL, connect_slave, &cluster->nodes[i])
             return (SERVER_ERROR);
-        F_SET(connection->status[i], CONNECTED);
-        status_reporter(i, argument);
+        //status_reporter(i, argument);
     }
-    close(socket_fd);
 }
 
 /*
@@ -61,22 +57,31 @@ int connect_to_nodes(t_connection *connection,
 ** computation program to all nodes with the input.
 */
 
-int send_program_to_nodes(t_connection connection)
+int send_program_to_nodes(t_cluster *cluster)
 {
+    t_request   request;
+    void        *program;
+    int         size;
 
+    program = read_program(cluster->program, &size); //protect
+    request.type = SENDING_PROGRAM;
+    request.data = program;
+    request.size = size;
+    request.status = malloc(sizeof(char) * size); //protect
+    ft_bzero(request.status, cluster->size);
+    t_stack_push_back(cluster->requests, create_request(request));
 }
 
 /*
 ** init_nodes() init connection with nodes and sends computation program.
 */
 
-int init_nodes(t_connection *connection)
+int init_nodes(t_cluster *cluster)
 {
     int err;
 
     err = 0;
-    err = init_connection(connection);
-    err = connect_nodes(connection);
+    err = initiate_connection_to_slaves(connection);
     err = send_program_to_nodes(*connection);
     return (err);
 }

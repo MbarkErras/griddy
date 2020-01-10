@@ -1,0 +1,11 @@
+#ifnef CONFIGURATION_H
+# define CONFIGURATION_H
+
+/*
+** REQUESTS TYPES
+*/
+
+# define SENDING_PROGRAM 0
+# define SENDING_INPUT 1
+
+#endif
