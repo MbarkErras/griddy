@@ -53,26 +53,6 @@ int initiate_connection_to_slaves(t_cluster cluster,
 }
 
 /*
-** after establishing connection with node, send_program_to_nodes() broadcast
-** computation program to all nodes with the input.
-*/
-
-int send_program_to_nodes(t_cluster *cluster)
-{
-    t_request   request;
-    void        *program;
-    int         size;
-
-    program = read_program(cluster->program, &size); //protect
-    request.type = SENDING_PROGRAM;
-    request.data = program;
-    request.size = size;
-    request.status = malloc(sizeof(char) * size); //protect
-    ft_bzero(request.status, cluster->size);
-    t_stack_push_back(cluster->requests, create_request(request));
-}
-
-/*
 ** init_nodes() init connection with nodes and sends computation program.
 */
 
@@ -95,4 +75,51 @@ int broadcast_computation(t_connection connection,
         void *data, void *output, int (*data_serializer)(void *))
 {
 
+}
+
+/*
+** get_configuration() parses configuration file and assign it content to
+** *cluster structure.
+*/
+
+int get_configuration(char *configuration_file, t_cluser *cluster)
+{
+    char    *raw_configuration;
+    char    *nodes_ip;
+    int     fd;
+    int     i;
+
+    i = 0;
+    cluster->size = 0;
+    if ((fd = open(configuration_file, O_RDONLY)) == -1)
+        return (OPEN_ERROR);
+    raw_configuration = read_file(fd);
+    ft_strdel(&raw_configuration);
+    nodes_ip = ft_strsplit(raw_configuration, '\n');
+    if (!(cluster->program = get_path(nodes_ip[0]))
+    {
+        free_array(nodes_ip);
+        return (PARSE_ERROR);
+    }
+    ft_strdel(&nodes_ip[0]);
+    while (nodes_ip[cluster->size + 1])
+    {
+        if (!is_valid_ip(nodes_ip[cluster->size]))
+        {
+            free_array(nodes_ip);
+            return (PARSE_ERROR);
+        }
+        cluster->size++;
+    }
+    if (!(cluster->nodes = malloc(sizeof(t_node) * cluster->size))
+    {
+        free_array(nodes_ip);
+        return (PARSE_ERROR);
+    }
+    while (i < cluster->size)
+    {
+        cluster->nodes[i]->ip = nodes_ip[i];
+    }
+    free(nodes_ip);
+    return (0);
 }

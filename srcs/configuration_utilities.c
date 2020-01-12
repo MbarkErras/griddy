@@ -1,38 +1,49 @@
 #include "griddy.h"
 
+# define BYTE_BLOCK 0
+# define BYTE_BLOCK_LOCK 1
+# define DOTS 2
+# define BYTE_BLOCK_OFFSET 3
+
 int     is_valid_ip(char *ip)
 {
+    int i;
+    int counts[4];
+
+    i = -1;
+    ft_bzero(counts, sizeof(int[4]));
+    while (ip[++i])
+    {
+        if (ip[i] != '.' || !ft_isdigit(ip[i]) ||
+        (ip[i] == '.' && (!i || !ft_isdigit(ip[i - 1]) || !ft_isdigit(ip[i + 1]))))
+            return (0);
+        if (ip[i] != '.' && !counts[BYTE_BLOCK_LOCK])
+        {
+            counts[BYTE_BLOCK]++;
+            counts[BYTE_BLOCK_LOCK] = 1;
+        }
+        if (ip[i] == '.')
+        {
+            counts[BYTE_BLOCK_LOCK] = 0;
+            counts[DOTS]++;
+            if (i - counts[BYTE_BLOCK_OFFSET] > 3 ||
+                ft_atoi(ip + counts[BYTE_BLOCK_OFFSET]) > 255)
+                return (0);
+            counts[BYTE_BLOCK_OFFSET] = i + 1;
+        }
+    }
+    if (counts[DOTS] != 3 || counts[BYTE_BLOCK] != 4)
+        return (0);
+    return (1);
 }
 
-char    *read_file(int fd)
+char    *get_path(char *entry)
 {
-    char    buffer[BUFFER_SIZE];
-    char    *content;
+    char *colon;
 
-    content = NULL;
-    ft_bzero(buffer, BUFFER_SIZE);
-    while (read(fd, buffer, BUFFER_SIZE - 1) > 0)
-    {
-        content = ft_strjoin_free(content, buffer, 1);
-        ft_bzero(buffer, BUFFER_SIZE);
-    }
-    return (content);
-}
-
-int get_configuration(char *configuration_file, t_cluser *cluster)
-{
-    char    *raw_configuration;
-    int     fd;
-
-    cluster->size = 0;
-    if ((fd = open(configuration_file, O_RDONLY)) == -1)
-        return (OPEN_ERROR);
-    raw_configuration = read_file(fd);
-    cluster->nodes = ft_strsplit(raw_configuration, '\n');
-    while (cluster->nodes[cluster->size])
-    {
-        // check if it is a valid ip
-        cluster->size++;
-    }
-    return (0);
+    if ((colon = ft_strchr(entry, ':')))
+        return (NULL);
+    *colon = 0;
+    if (!ft_strcmp(entry, "path"))
+        return (ft_strdup(colon + 1));
 }

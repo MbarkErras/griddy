@@ -25,6 +25,7 @@ typedef struct  s_request
 
 typedef struct  s_node
 {
+    char        *ip;
     int         socket;
     int         status;
     t_list     **requests;
@@ -35,7 +36,7 @@ typedef struct  s_node
 
 typedef struct   s_cluster
 {
-    t_node      *nodes;
+    t_node      **nodes;
     char        *program;
     size_t      size;
     t_list      *requests;
@@ -50,5 +51,6 @@ typedef struct   s_cluster
 
 # define OPEN_ERROR 1
 # define SERVER_ERROR 2
+# define PARSE_ERROR 3
 
 #endif
