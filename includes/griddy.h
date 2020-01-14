@@ -11,9 +11,15 @@
 # include <sys/types.h>
 # include <sys/time.h>
 
-# include "stack.h"
+# include "centropy.h"
+# include "cdata_structures.h"
+
+#include "configuration.h"
+
 
 # define PORT 1337
+
+# define BUFFER_SIZE 512
 
 typedef struct  s_request
 {
@@ -43,14 +49,33 @@ typedef struct   s_cluster
 }               t_cluster;
 
 /*
+** CONFIGURATION UTILITIES
+*/
+
+int get_configuration(char *configuration_file, t_cluster *cluster);
+
+
+/*
 ** NODES STATUS BITS
 */
+
 # define CONNECTED 0
 
-# define BUFFER_SIZE 512
 
-# define OPEN_ERROR 1
-# define SERVER_ERROR 2
-# define PARSE_ERROR 3
+
+/*
+** ERROR HANDLING
+*/
+
+# define BAD_CONFIGBAD_CONFIG 1
+
+/*
+** static int is_valid_ip(char *ip) MACROS
+*/
+
+# define BYTE_BLOCK 0
+# define BYTE_BLOCK_LOCK 1
+# define DOTS 2
+# define BYTE_BLOCK_OFFSET 3
 
 #endif

@@ -1,0 +1,9 @@
+[submodule "pseudo/libs/centropy"]
+	path = pseudo/libs/centropy
+	url = https://github.com/MbarkErras/centropy.git
+[submodule "libs/centropy"]
+	path = libs/centropy
+	url = https://github.com/MbarkErras/centropy.git
+[submodule "libs/cdata_structures"]
+	path = libs/cdata_structures
+	url = https://github.com/MbarkErras/cdata_structures.git
