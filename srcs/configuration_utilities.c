@@ -9,7 +9,7 @@ static int is_valid_ip(char *ip)
     ft_bzero(counts, sizeof(int[4]));
     while (ip[++i])
     {
-        if (ip[i] != '.' || !ft_isdigit(ip[i]) ||
+        if ((ip[i] != '.' && !ft_isdigit(ip[i])) ||
         (ip[i] == '.' && (!i || !ft_isdigit(ip[i - 1]) || !ft_isdigit(ip[i + 1]))))
             return (0);
         if (ip[i] != '.' && !counts[BYTE_BLOCK_LOCK])
@@ -27,9 +27,7 @@ static int is_valid_ip(char *ip)
             counts[BYTE_BLOCK_OFFSET] = i + 1;
         }
     }
-    if (counts[DOTS] != 3 || counts[BYTE_BLOCK] != 4)
-        return (0);
-    return (1);
+    return (counts[DOTS] == 3 && counts[BYTE_BLOCK] == 4);
 }
 
 static char **read_configuration_file(char *filename)
@@ -37,10 +35,13 @@ static char **read_configuration_file(char *filename)
     char    buffer[BUFFER_SIZE];
     char    *raw_configuration;
     char    **lines;
+    int     fd;
 
+    if ((fd = open(filename, O_RDONLY)) == -1)
+        return (NULL);
     raw_configuration = NULL;
     ft_bzero(buffer, BUFFER_SIZE);
-    while (read(0, buffer, BUFFER_SIZE - 1) > 0)
+    while (read(fd, buffer, BUFFER_SIZE - 1) > 0)
     {
         raw_configuration = ft_strjoin_free(raw_configuration, buffer, 1);
         ft_bzero(buffer, BUFFER_SIZE);
@@ -50,7 +51,7 @@ static char **read_configuration_file(char *filename)
     return (lines);
 }
 
-static char *get_program_name(char *entry)
+static char *get_program_path(char *entry)
 {
     char    *colon;
 
@@ -71,13 +72,13 @@ static int  assign_nodes_addresses(char **configuration_lines, t_cluster *cluste
     while (configuration_lines[cluster->size + 1])
     {
         if (!is_valid_ip(configuration_lines[cluster->size + 1]))
-            return (1)
+            return (1);
         cluster->size++;
     }
-    if (!(cluster->nodes = malloc(sizeof(t_node) * cluster->size))
+    if (!(cluster->nodes = (t_node *)malloc(sizeof(t_node) * cluster->size)))
         return (1);
     while (++i < cluster->size)
-        cluster->nodes->ip = configuration_lines[i + 1];
+        cluster->nodes[i].ip = configuration_lines[i + 1];
     return (0);
 }
 
