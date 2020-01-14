@@ -16,11 +16,59 @@ void    send_request(t_node node, t_request *request)
 ** assigns returned output to void *output.
 */
 
-int broadcast_computation(t_cluster *cluster,
-        void *data, void **output, int (*data_serializer)(void *))
+// int broadcast_computation(t_cluster *cluster,
+//         void *data, int size, void *output, int (*data_serializer)(void *))
+// {
+//     t_req
+//     int i = 0;
+//     while (i < cluster->size)
+//     {
+
+//     }
+//     return (0);
+// }
+
+char    *read_file(int fd)
 {
+    char    buffer[BUFFER_SIZE];
+    char    *content;
+
+    content = NULL;
+    ft_bzero(buffer, BUFFER_SIZE);
+    while (read(fd, buffer, BUFFER_SIZE - 1) > 0)
+    {
+        content = ft_strjoin_free(content, buffer, 1);
+        ft_bzero(buffer, BUFFER_SIZE);
+    }
+    return (content);
+}
+
+int send_program_to_nodes(t_cluster *cluster)
+{
+    int         fd;
+    t_request   request;
+    void        *program;
+    int         size;
+
+    if ((fd = open(cluster->program, O_RDONLY)) == -1)
+        return (OPEN_ERROR);
+    if (!(program = read_file(fd)))
+        return (OPEN_ERROR);
+    request.type = PROGRAM;
+    request.data = program;
+    request.size = ft_strlen(program);
+    request.status = malloc(sizeof(char) * size); //protect
+    ft_bzero(request.status, cluster->size);
+    int i = 0;
+    while (i < cluster->size)
+    {
+        send_request(cluster->nodes[i], &request);
+        i++;
+    }
+    //t_stack_push_back(cluster->requests, create_request(request));
     return (0);
 }
+
 
 /*
 ** connect_slave() keeps looping over node->requests waiting for requests to
@@ -29,9 +77,10 @@ int broadcast_computation(t_cluster *cluster,
 
 void    *connect_slave(void *node)
 {
-    printf("node: %s connected!\nsocket: %d\n", ((t_node *)node)->ip, ((t_node *)node)->socket);
-    return (NULL);
+    //printf("node: %s connected!\nsocket: %d\n", ((t_node *)node)->ip, ((t_node *)node)->socket);    
+    return NULL;
     /*F_SET(node->status, CONNECTED);
+   return NULL;
     while (1)
     {
         if (node->requests_queue.size || !F_SET(node->flags, DO_PROCEED))
@@ -63,7 +112,7 @@ int initiate_connection_to_slaves(t_cluster *cluster,
             return (CONNECTION_ERR);
         ft_bzero(&server_address, sizeof(server_address));
         server_address.sin_family = AF_INET; 
-        server_address.sin_addr.s_addr = inet_pton(AF_INET, cluster->nodes[i].ip, NULL);
+        inet_pton(AF_INET, cluster->nodes[i].ip, &server_address.sin_addr);
         server_address.sin_port = htons(PORT);
         if (connect(socket_fd, (struct sockaddr *)&server_address, sizeof(server_address)) != 0)
             continue ;
@@ -84,9 +133,9 @@ int init_cluster(t_cluster *cluster)
 {
     int err;
 
-    cluster->requests_queue = t_dstruct_list_init();
+    //cluster->requests_queue = t_dstruct_list_init();
     err = 0;
     err = ERROR_WRAPPER(initiate_connection_to_slaves(cluster, NULL, NULL));
-    //err = ERROR_WRAPPER(send_program_to_nodes(*cluster));
+    err = ERROR_WRAPPER(send_program_to_nodes(cluster));
     return (err);
 }

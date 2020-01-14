@@ -18,8 +18,6 @@
 # include "centropy.h"
 # include "queue.h"
 
-#include "configuration.h"
-
 
 # define PORT 1337
 # define LISTEN_QUEUE 42
@@ -36,9 +34,8 @@ typedef struct  s_request
 /*
 ** REQUESTS TYPES
 */
-
-# define PROGRAM 1
-# define COMPUTATION 2
+# define PROGRAM 0
+# define COMPUTATION 1
 
 typedef struct  s_node
 {
@@ -64,6 +61,8 @@ typedef struct   s_cluster
     t_dstruct_list  requests_queue;
 }               t_cluster;
 
+int init_cluster(t_cluster *cluster);
+
 typedef struct  s_slave
 {
     int             connection_fd;
@@ -76,6 +75,9 @@ typedef struct  s_slave
 */
 
 int get_configuration(char *configuration_file, t_cluster *cluster);
+int broadcast_computation(t_cluster *cluster,
+        void *data, void *output, int (*data_serializer)(void *));
+void    send_request(t_node node, t_request *request);
 
 
 /*
@@ -90,6 +92,7 @@ void        destroy_request(t_request *request);
 ** convention: 0 for successful return.
 */
 
+# define OPEN_ERROR 45
 # define ERROR_WRAPPER(x) err ? err : x
 # define BAD_CONFIG 1
 # define CONNECTION_ERR 2
@@ -108,5 +111,11 @@ void        destroy_request(t_request *request);
 */
 
 # define CAST(v, t) ((t)v)
+# define F_GET(x, f) (x & (1 << f))
+# define F_BGET(x, f) (x & f)
+# define F_SET(x, f) (x |= (1 << f))
+# define F_BSET(x, f) (x |= f)
+# define F_UNSET(x, f) (x &= ~(1 << f))
+# define F_BUNSET(x, f) (x &= ~f)
 
 #endif
