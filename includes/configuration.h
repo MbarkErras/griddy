@@ -1,4 +1,4 @@
-#ifnef CONFIGURATION_H
+#ifndef CONFIGURATION_H
 # define CONFIGURATION_H
 
 /*
